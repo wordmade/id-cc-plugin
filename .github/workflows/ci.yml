@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Verify Plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify plugin structure
+        run: |
+          echo "Checking required files..."
+          test -f .claude-plugin/plugin.json || { echo "Missing .claude-plugin/plugin.json"; exit 1; }
+          test -f skills/identity/SKILL.md || { echo "Missing skills/identity/SKILL.md"; exit 1; }
+          test -f README.md || { echo "Missing README.md"; exit 1; }
+          test -f LICENSE || { echo "Missing LICENSE"; exit 1; }
+          echo "All required files present."
+
+      - name: Verify SKILL.md has frontmatter
+        run: |
+          head -1 skills/identity/SKILL.md | grep -q "^---$" || {
+            echo "SKILL.md must start with YAML frontmatter (---)"
+            exit 1
+          }
+          echo "SKILL.md frontmatter OK."
+
+      - name: Scan for internal references
+        run: |
+          echo "Scanning for internal references that should not be public..."
+          FAILED=0
+
+          # Strict scan: all plugin content (no localhost, no internal refs)
+          if grep -rn "docs/architecture/\|sources/internal/\|huru-io\|localhost:[0-9]\|stack[0-9]" \
+            skills/identity/SKILL.md .claude-plugin/ README.md 2>/dev/null; then
+            echo "ERROR: Found internal references."
+            FAILED=1
+          fi
+
+          if [ "$FAILED" = "1" ]; then
+            echo ""
+            echo "These must be removed before publishing."
+            exit 1
+          fi
+          echo "No internal references found. Clean."
+
+      - name: Validate plugin.json
+        run: |
+          python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))" || {
+            echo "plugin.json is not valid JSON"
+            exit 1
+          }
+          echo "plugin.json is valid JSON."

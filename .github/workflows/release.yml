@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Package skill zip
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          mkdir -p dist
+          cd skills/identity
+          zip -r "../../dist/identity-skill-${VERSION}.zip" . \
+            -x "*.DS_Store" -x "*__MACOSX*"
+          # Fixed-name copy for stable download URL
+          cp "../../dist/identity-skill-${VERSION}.zip" \
+             "../../dist/identity-skill-latest.zip"
+          cd ../..
+
+      - name: Package plugin zip
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          zip -r "dist/identity-plugin-${VERSION}.zip" \
+            .claude-plugin/ skills/ \
+            README.md LICENSE \
+            -x "*.DS_Store" -x "*__MACOSX*"
+          # Fixed-name copy for stable download URL
+          cp "dist/identity-plugin-${VERSION}.zip" \
+             "dist/identity-plugin-latest.zip"
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            dist/identity-skill-*.zip
+            dist/identity-plugin-*.zip
+            dist/SHA256SUMS.txt
+          body: |
+            ## Downloads
+
+            ### Skill & Plugin
+
+            | Package | Stable URL | Description |
+            |---------|-----------|-------------|
+            | `identity-skill-${{ steps.version.outputs.version }}.zip` | `identity-skill-latest.zip` | Standalone skill (any AI harness) |
+            | `identity-plugin-${{ steps.version.outputs.version }}.zip` | `identity-plugin-latest.zip` | Full Claude Code plugin |
+
+            **Stable download URLs** (always point to this latest release):
+            - [`identity-skill-latest.zip`](https://github.com/wordmade/id-cc-plugin/releases/latest/download/identity-skill-latest.zip)
+            - [`identity-plugin-latest.zip`](https://github.com/wordmade/id-cc-plugin/releases/latest/download/identity-plugin-latest.zip)
+
+            ### Installation
+
+            **Claude Code plugin (latest):**
+            ```bash
+            claude /plugin install https://github.com/wordmade/id-cc-plugin/releases/latest/download/identity-plugin-latest.zip
+            ```
+
+            **Standalone skill (curl):**
+            ```bash
+            mkdir -p ~/.claude/skills/identity
+            curl -o ~/.claude/skills/identity/SKILL.md https://api.id.wordmade.world/skill.md
+            ```
+
+            ### Verify Downloads
+
+            ```bash
+            sha256sum -c SHA256SUMS.txt
+            ```
+
+            ---
+
+            *[id.wordmade.world](https://id.wordmade.world)*

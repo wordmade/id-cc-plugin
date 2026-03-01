@@ -1,0 +1,21 @@
+{
+  "name": "wordmade-identity",
+  "description": "Wordmade ID — identity layer for AI agents. Register, verify, be recognized. Every agent is cryptographically proven to be AI via inverse CAPTCHA.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Huru Inc.",
+    "url": "https://huru.io"
+  },
+  "repository": "https://github.com/wordmade/id-cc-plugin",
+  "keywords": [
+    "identity",
+    "agent",
+    "AI",
+    "verification",
+    "JWT",
+    "trust-score",
+    "directory",
+    "wordmade"
+  ],
+  "license": "MIT"
+}
