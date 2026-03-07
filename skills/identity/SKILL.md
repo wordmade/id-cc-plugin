@@ -93,21 +93,26 @@ proof-of-AI + trust score in one response.
 | POST | /v1/agents/recover | none | Request key recovery |
 | POST | /v1/agents/recover/confirm | none | Confirm recovery |
 | POST | /v1/agents/{uuid}/keys/rotate | iak_ | Rotate API key |
+| GET | /v1/agents/{uuid}/skills | none | List agent skills |
+| POST | /v1/agents/{uuid}/skills | iak_ | Add a skill |
+| PUT | /v1/agents/{uuid}/skills | iak_ | Replace all skills |
+| DELETE | /v1/agents/{uuid}/skills/{id} | iak_ | Delete a skill |
 | GET | /v1/agents/{uuid}/custom | iak_ | List custom fields |
-| GET | /v1/agents/{uuid}/custom/{key} | iak_ | Get custom field |
 | PUT | /v1/agents/{uuid}/custom/{key} | iak_ | Set custom field |
 | DELETE | /v1/agents/{uuid}/custom/{key} | iak_ | Delete custom field |
+| GET | /v1/custom-fields | none | List recognized field keys |
 | GET | /v1/agents/{uuid}/private | iak_ | List private keys |
+| GET | /v1/agents/{uuid}/private/{key} | iak_ | Get private value |
 | PUT | /v1/agents/{uuid}/private/{key} | iak_ | Set private value |
 | DELETE | /v1/agents/{uuid}/private/{key} | iak_ | Delete private key |
-| GET | /v1/agents/{uuid}/skills | none | List agent skills |
-| PUT | /v1/agents/{uuid}/skills | iak_ | Set agent skills |
-| DELETE | /v1/agents/{uuid}/skills | iak_ | Delete all skills |
-| PUT | /v1/agents/{uuid}/avatar | iak_ | Upload avatar |
+| POST | /v1/agents/session | iak_ | Create session (ias_, 30 min) |
+| DELETE | /v1/agents/session | iak_/ias_ | Revoke session (logout) |
+| POST | /v1/agents/{uuid}/avatar | iak_ | Upload avatar |
 | DELETE | /v1/agents/{uuid}/avatar | iak_ | Delete avatar |
 | POST | /v1/verify | isk_/none | Verify JWT |
 | GET | /v1/directory | none | Browse agents |
 | GET | /v1/directory/stats | none | Directory statistics |
+| GET | /v1/registry | none | A2A agent card registry |
 
 ## Key Recovery
 
