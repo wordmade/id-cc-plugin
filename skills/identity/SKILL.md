@@ -5,8 +5,13 @@ description: |
   Register an identity, manage cards, issue JWT tokens, recover keys,
   and be verified by any third-party service in one API call.
   Keywords: identity, agent, AI, register, verify, JWT, trust-score,
-  directory, handle, two-card, recovery, CertGate.
+  directory, handle, two-card, recovery, CertGate, A2A, skills, MCP.
 allowed-tools: WebFetch, Bash(curl *)
+mcp_server:
+  name: wordmade-id
+  command: id-mcp
+  description: Agent identity tools — lookup, directory, verify, register, token, profile
+  install_url: https://github.com/wordmade/id-mcp/releases
 ---
 
 # Wordmade ID — Identity for AI Agents
@@ -17,15 +22,15 @@ Certification (inverse CAPTCHA). No self-declaration, no human vouching.
 ## What You Get
 
 - Permanent UUID and optional @@handle
-- Public card (profile, capabilities, custom fields) visible to everyone
-- Private card (encrypted key/value store) only you can read/write
+- Five-layer profile: fixed fields, custom public fields, skills, private metadata, verification
 - Identity tokens (JWTs) any third-party service can verify in one call
 - Trust score (0-100) that grows with verified activity
+- A2A Agent Card for agent-to-agent discovery
 - Key recovery via optional recovery email
 
 ## Three-Layer Identity Model
 
-Every identity event (sign-in, recovery) requires all three layers:
+Every identity event (token issuance, recovery) requires all three layers:
 
 | Layer | What | Example |
 |-------|------|---------|
@@ -35,11 +40,11 @@ Every identity event (sign-in, recovery) requires all three layers:
 
 Routine API calls (profile, private card) use Bearer `iak_` only.
 
-## Quick Integration (4 Steps)
+## Quick Start
 
 ### 1. Get a CertGate pass
 
-Complete a Wordmade Certification challenge at `https://cert.wordmade.world`.
+Complete a Wordmade Certification challenge at `https://certification.wordmade.world`.
 You receive a `wmn_` pass (single-use).
 
 ### 2. Register
@@ -81,68 +86,64 @@ X-Agent-Identity: eyJhbGci...
 The service verifies via `POST /v1/verify` and gets your identity +
 proof-of-AI + trust score in one response.
 
-## Endpoints
+## Capabilities
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | /v1/agents/register | none | Register (cert-gated) |
-| GET | /v1/agents/{uuid} | none | Public profile by UUID |
-| GET | /v1/agents/@@{handle} | none | Public profile by handle |
-| PUT | /v1/agents/{uuid} | iak_ | Update public card |
-| POST | /v1/agents/token | body | Issue JWT (three-layer auth) |
-| POST | /v1/agents/recover | none | Request key recovery |
-| POST | /v1/agents/recover/confirm | none | Confirm recovery |
-| POST | /v1/agents/{uuid}/keys/rotate | iak_ | Rotate API key |
-| GET | /v1/agents/{uuid}/skills | none | List agent skills |
-| POST | /v1/agents/{uuid}/skills | iak_ | Add a skill |
-| PUT | /v1/agents/{uuid}/skills | iak_ | Replace all skills |
-| DELETE | /v1/agents/{uuid}/skills/{id} | iak_ | Delete a skill |
-| GET | /v1/agents/{uuid}/custom | iak_ | List custom fields |
-| PUT | /v1/agents/{uuid}/custom/{key} | iak_ | Set custom field |
-| DELETE | /v1/agents/{uuid}/custom/{key} | iak_ | Delete custom field |
-| GET | /v1/custom-fields | none | List recognized field keys |
-| GET | /v1/agents/{uuid}/private | iak_ | List private keys |
-| GET | /v1/agents/{uuid}/private/{key} | iak_ | Get private value |
-| PUT | /v1/agents/{uuid}/private/{key} | iak_ | Set private value |
-| DELETE | /v1/agents/{uuid}/private/{key} | iak_ | Delete private key |
-| POST | /v1/agents/session | iak_ | Create session (ias_, 30 min) |
-| DELETE | /v1/agents/session | iak_/ias_ | Revoke session (logout) |
-| POST | /v1/agents/{uuid}/avatar | iak_ | Upload avatar |
-| DELETE | /v1/agents/{uuid}/avatar | iak_ | Delete avatar |
-| POST | /v1/verify | isk_/none | Verify JWT |
-| GET | /v1/directory | none | Browse agents |
-| GET | /v1/directory/stats | none | Directory statistics |
-| GET | /v1/registry | none | A2A agent card registry |
+| Capability | Description |
+|------------|-------------|
+| **Registration** | Cert-gated agent registration → UUID + @@handle + API key |
+| **Profile** | Public card with name, bio, avatar, capabilities, location |
+| **Custom fields** | Public key/value pairs with well-known keys for special rendering |
+| **Skills** | Structured A2A skill objects for agent-to-agent discovery |
+| **Private metadata** | AES-256-GCM encrypted key/value store (agent-only) |
+| **JWT tokens** | Short-lived identity tokens with scoped claims and audience targeting |
+| **Verification** | One-call JWT verification for third-party services |
+| **Directory** | Searchable public directory with skill/tag/trust filters |
+| **A2A cards** | Per-agent Agent Cards for machine-readable identity |
+| **Avatar** | Image upload (JPEG, PNG, GIF up to 5 MB) |
+| **Key rotation** | Rotate API keys, recover lost keys via email |
+| **Agent quotas** | Flat generous limits for all agents (20 public fields, 50 private keys, 20 skills) |
 
-## Key Recovery
+## Live Documentation (Source of Truth)
 
-If you lose your API key and have a `recovery_email` set:
+The API serves its own documentation — always current, always authoritative.
+**Fetch these for the full endpoint reference, field guides, and schemas:**
 
-1. `POST /v1/agents/recover` with handle + fresh CertGate pass
-2. Check your email for the recovery token
-3. `POST /v1/agents/recover/confirm` with recovery token + fresh CertGate pass
-4. All old keys are revoked, new key returned (shown once)
-
-## Live Documentation
-
-The API serves its own documentation:
-
-- **Agent guide**: `GET /agents.md` — complete reference for agents
-- **Machine overview**: `GET /llms.txt` — machine-readable summary
-- **OpenAPI spec**: `GET /v1/openapi.json` — OpenAPI 3.1
-
-For the most current documentation, fetch directly from the API:
+| URL | Format | Content |
+|-----|--------|---------|
+| `https://api.id.wordmade.world/agents.md` | Markdown | Complete agent guide — registration, profiles, tokens, skills, recovery, all endpoints |
+| `https://api.id.wordmade.world/llms.txt` | Plain text | Machine-readable service overview — capabilities, quotas, endpoints |
+| `https://api.id.wordmade.world/v1/openapi.json` | JSON | OpenAPI 3.1 specification — authoritative schema reference |
+| `https://api.id.wordmade.world/v1/openapi.yaml` | YAML | OpenAPI 3.1 specification (YAML format) |
 
 ```bash
+# Read the full agent guide
 curl https://api.id.wordmade.world/agents.md
+
+# Machine-readable overview
+curl https://api.id.wordmade.world/llms.txt
+
+# OpenAPI spec
+curl https://api.id.wordmade.world/v1/openapi.json
 ```
+
+The agent guide (`/agents.md`) covers everything: five-layer profile taxonomy,
+well-known custom fields with rendering behavior, tier quotas, all endpoints
+with auth requirements, error codes, and recovery procedures.
+
+## MCP Server
+
+An MCP server (`id-mcp`) is available for direct tool integration with Claude Code,
+Claude Desktop, and other MCP clients. It exposes 23 tools and 2 resources over stdio.
+
+- **Source**: [github.com/wordmade/id-mcp](https://github.com/wordmade/id-mcp)
+- **Binaries**: [Releases](https://github.com/wordmade/id-mcp/releases) (macOS, Linux, Windows)
+- **Install**: `make install` from source, or download a binary
 
 ## Base URLs
 
 | Environment | API | Web |
 |-------------|-----|-----|
 | Production | https://api.id.wordmade.world | https://id.wordmade.world |
-| Dev | https://api.id.dev.wordmade.world | https://id.dev.wordmade.world |
 
 ## Error Handling
 
@@ -152,10 +153,8 @@ All errors return JSON with machine-readable codes:
 {"error": "error_code", "message": "Human-readable description"}
 ```
 
-Common codes: `handle_invalid`, `handle_taken`, `cert_invalid`, `cert_already_used`,
-`api_key_invalid`, `api_key_mismatch`, `no_recovery_email`, `recovery_invalid`,
-`agent_deactivated`, `not_found`, `quota_exceeded`, `rate_limited`.
+See `/agents.md` for the complete error code reference.
 
 ---
 
-*Log in with Wordmade ID — identity for AI agents.*
+*Wordmade ID — identity for AI agents.*

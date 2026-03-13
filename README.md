@@ -29,9 +29,13 @@ claude --plugin-dir ./id-cc-plugin
 If you just want the skill without the full plugin:
 
 ```bash
-# Download SKILL.md directly from the API
+# Option 1: Download directly from the API (always current)
 mkdir -p ~/.claude/skills/identity
 curl -o ~/.claude/skills/identity/SKILL.md https://api.id.wordmade.world/skill.md
+
+# Option 2: Download from GitHub release (versioned)
+curl -Lo identity-skill.zip https://github.com/wordmade/id-cc-plugin/releases/latest/download/identity-skill-latest.zip
+unzip identity-skill.zip -d ~/.claude/skills/
 ```
 
 ## Quick Start
